@@ -28,7 +28,7 @@ filtered_df = df[
 st.title("📊 OECD Patent Dashboard")
 st.markdown("**Analysis of environmental innovation based on OECD patent data.**")
 st.markdown("Use the filters on the left to explore data by year, country, technology domain, and measure type.")
-
+st.markdown("**Create by Nguyen Anh Khoa - 104856650")
 # CHART 1: Total patents by year
 st.subheader("📈 Total Patents Over Time")
 fig1 = px.bar(
