@@ -7,7 +7,7 @@ import plotly.express as px
 # Load the data
 @st.cache_data
 def load_data():
-    return pd.read_csv("../../cleaned_oecd_patent_data.csv")
+    return pd.read_csv("cleaned_oecd_patent_data.csv")
 
 df = load_data()
 
