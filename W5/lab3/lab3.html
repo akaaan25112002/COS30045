@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="description" content="Data Visualisation"/>
+    <meta name="keywords" content="HTML, CSS, D3"/>
+    <meta name="author" content="Anh Khoa"/>
+    <title>LAB 5.3 D3 Adding and Removing Data</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+    <h1>The D3 Journey starts here...</h1>
+
+    <!-- Buttons for different transitions -->
+    <div style="margin-bottom: 20px;">
+        <button id="addData">Add</button>
+        <button id="removeData">Remove</button>
+    </div>
+
+    <script>
+        var w = 500;
+        var h = 200;
+        var maxValue = 25;
+
+        var dataset = [14, 5, 26, 23, 9, 12, 18, 25];
+
+        var svg = d3.select("body")
+                    .append("svg")
+                    .attr("width", w)
+                    .attr("height", h);
+
+        const xScale = d3.scaleBand()
+            .rangeRound([0, w])
+            .paddingInner(0.1);
+
+        const yScale = d3.scaleLinear()
+            .domain([0, maxValue])
+            .range([h, 0]);
+
+        function updateChart() {
+            xScale.domain(d3.range(dataset.length));
+
+            // === BARS ===
+            const bars = svg.selectAll("rect")
+                .data(dataset, (d, i) => i);
+
+            bars.exit()
+                .transition()
+                .duration(500)
+                .attr("x", w)
+                .remove();
+
+            const newBars = bars.enter()
+                .append("rect")
+                .attr("x", w) // xuất hiện từ ngoài khung
+                .attr("y", d => yScale(d))
+                .attr("width", xScale.bandwidth())
+                .attr("height", d => h - yScale(d))
+                .attr("fill", "orange");
+
+            newBars.merge(bars)
+                .transition()
+                .duration(500)
+                .attr("x", (d, i) => xScale(i))
+                .attr("y", d => yScale(d))
+                .attr("width", xScale.bandwidth())
+                .attr("height", d => h - yScale(d));
+
+            // === LABELS ===
+            const labels = svg.selectAll("text")
+                .data(dataset, (d, i) => i);
+
+            labels.exit()
+                .transition()
+                .duration(500)
+                .attr("x", w)
+                .remove();
+
+            const newLabels = labels.enter()
+                .append("text")
+                .text(d => d)
+                .attr("x", w)
+                .attr("y", d => Math.max(yScale(d) - 5, 10))
+                .attr("text-anchor", "middle")
+                .attr("font-size", "12px")
+                .attr("fill", "black");
+
+            newLabels.merge(labels)
+                .transition()
+                .duration(500)
+                .text(d => d)
+                .attr("x", (d, i) => xScale(i) + xScale.bandwidth() / 2)
+                .attr("y", d => Math.max(yScale(d) - 5, 10));
+        }
+
+        // Initial draw
+        updateChart();
+
+        // Event handlers
+        d3.select("#addData").on("click", function () {
+            const newValue = Math.floor(Math.random() * maxValue);
+            dataset.push(newValue);
+            updateChart();
+        });
+
+        d3.select("#removeData").on("click", function () {
+            if (dataset.length > 0) {
+                dataset.shift();
+                updateChart();
+            }
+        });
+    </script>
+
+    <footer style="color: grey; margin-top: 20px;">
+        COS30045 Data Visualisation<br>
+        Anh Khoa
+    </footer>
+</body>
+</html>

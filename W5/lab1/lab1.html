@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="description" content="Data Visualisation"/>
+    <meta name="keywords" content="HTML, CSS, D3"/>
+    <meta name="author" content="Anh Khoa"/>
+    <title>LAB 5.1 D3 Updates</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+    <h1>The D3 Journey starts here...</h1>
+
+    <div style="margin-bottom: 20px;">
+        <button id="updateButton">Update Data</button>
+    </div>
+
+    <script>
+        var w = 500;
+        var h = 200;
+        var maxValue = 25;
+
+        var dataset = [14, 5, 26, 23, 9, 12, 18, 25];
+
+        var svg = d3.select("body")
+                    .append("svg")
+                    .attr("width", w)
+                    .attr("height", h);
+
+        var xScale = d3.scaleBand()
+                       .domain(d3.range(dataset.length))
+                       .rangeRound([0, w])
+                       .paddingInner(0.1);
+
+        var yScale = d3.scaleLinear()
+                       .domain([0, maxValue])
+                       .range([h, 0]);
+
+        // Draw initial bars
+        svg.selectAll("rect")
+            .data(dataset)
+            .enter()
+            .append("rect")
+            .attr("x", (d, i) => xScale(i))
+            .attr("y", d => yScale(d))
+            .attr("width", xScale.bandwidth())
+            .attr("height", d => h - yScale(d))
+            .attr("fill", "green");
+
+        // Draw initial labels
+        svg.selectAll("text")
+            .data(dataset)
+            .enter()
+            .append("text")
+            .text(d => d)
+            .attr("x", (d, i) => xScale(i) + xScale.bandwidth() / 2)
+            .attr("y", d => Math.max(yScale(d) - 5, 10))
+            .attr("text-anchor", "middle")
+            .attr("font-size", "12px")
+            .attr("fill", "black");
+
+        // Update button event
+        d3.select("#updateButton").on("click", function () {
+            dataset = d3.range(8).map(() => Math.floor(Math.random() * maxValue));
+
+            xScale.domain(d3.range(dataset.length));
+
+            // Update bars
+            svg.selectAll("rect")
+                .data(dataset)
+                .join("rect")
+                .transition()
+                .duration(500)
+                .attr("x", (d, i) => xScale(i))
+                .attr("y", d => yScale(d))
+                .attr("width", xScale.bandwidth())
+                .attr("height", d => h - yScale(d))
+                .attr("fill", "orange");
+
+            // Update labels
+            svg.selectAll("text")
+                .data(dataset)
+                .join("text")
+                .transition()
+                .duration(500)
+                .text(d => d)
+                .attr("x", (d, i) => xScale(i) + xScale.bandwidth() / 2)
+                .attr("y", d => Math.max(yScale(d) - 5, 10));
+        });
+    </script>
+
+    <footer style="color: grey; margin-top: 20px;">
+        COS30045 Data Visualisation<br>
+        Joe Bloggs
+    </footer>
+</body>
+</html>
