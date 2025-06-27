@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lab 7.1 D3 Line and Area Chart</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    .line {
+      fill: none;
+      stroke: steelblue;
+      stroke-width: 2;
+    }
+    .area {
+      fill: lightsteelblue;
+      opacity: 0.5;
+    }
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+    .annotation {
+      stroke: red;
+      stroke-dasharray: 5 5;
+    }
+  </style>
+</head>
+<body>
+  <h2>Australian Unemployment (1978–1995)</h2>
+  <svg width="700" height="400"></svg>
+
+  <script>
+    const w = 700;
+    const h = 400;
+    const padding = 50;
+
+    const svg = d3.select("svg");
+
+    // ✅ Read and parse CSV
+    d3.csv("Unemployment_78-95.csv", function(d) {
+      return {
+        date: new Date(+d.year, +d.month - 1), // month - 1 for JS
+        number: +d.number.replace(/,/g, "") // remove commas from number
+      };
+    }).then(function(data) {
+      // === Scales ===
+      const xScale = d3.scaleTime()
+        .domain(d3.extent(data, d => d.date))
+        .range([padding, w - padding]);
+
+      const yScale = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.number)])
+        .range([h - padding, padding]);
+
+      // === Axes ===
+      const xAxis = d3.axisBottom(xScale).ticks(10);
+      const yAxis = d3.axisLeft(yScale).ticks(10).tickFormat(d3.format(","));
+
+      svg.append("g")
+        .attr("transform", `translate(0,${h - padding})`)
+        .call(xAxis);
+
+      svg.append("g")
+        .attr("transform", `translate(${padding},0)`)
+        .call(yAxis);
+
+      // === Area generator ===
+      const area = d3.area()
+        .x(d => xScale(d.date))
+        .y0(yScale(0))
+        .y1(d => yScale(d.number));
+
+      // === Line generator ===
+      const line = d3.line()
+        .x(d => xScale(d.date))
+        .y(d => yScale(d.number));
+
+      // === Draw Area ===
+      svg.append("path")
+        .datum(data)
+        .attr("class", "area")
+        .attr("d", area);
+
+      // === Draw Line ===
+      svg.append("path")
+        .datum(data)
+        .attr("class", "line")
+        .attr("d", line);
+
+      // === Annotation Line at 500,000 ===
+      svg.append("line")
+        .attr("class", "annotation")
+        .attr("x1", padding)
+        .attr("x2", w - padding)
+        .attr("y1", yScale(500000))
+        .attr("y2", yScale(500000));
+
+      svg.append("text")
+        .attr("x", w - padding)
+        .attr("y", yScale(500000) - 5)
+        .attr("text-anchor", "end")
+        .attr("fill", "red")
+        .text("500,000 unemployed");
+    });
+  </script>
+</body>
+</html>

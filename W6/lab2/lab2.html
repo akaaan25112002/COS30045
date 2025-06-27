@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Data Visualisation" />
+    <meta name="keywords" content="HTML, CSS, D3" />
+    <meta name="author" content="Anh Khoa" />
+    <title>LAB 6.2 D3 Interactivity - Sort</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+    <h1>The D3 Journey starts here...</h1>
+
+    <div style="margin-bottom: 20px;">
+        <button id="addData">Add</button>
+        <button id="removeData">Remove</button>
+        <button id="sortData">Sort</button>
+    </div>
+
+    <script>
+        var w = 500;
+        var h = 200;
+        var maxValue = 30;
+        var sortAscending = true;
+
+        var dataset = [14, 5, 26, 23, 9, 12, 18, 25];
+
+        var svg = d3.select("body")
+            .append("svg")
+            .attr("width", w)
+            .attr("height", h);
+
+        const xScale = d3.scaleBand()
+            .rangeRound([0, w])
+            .paddingInner(0.1);
+
+        const yScale = d3.scaleLinear()
+            .domain([0, maxValue])
+            .range([h, 0]);
+
+        function updateChart() {
+            xScale.domain(d3.range(dataset.length));
+
+            // === BARS ===
+            const bars = svg.selectAll("rect")
+                .data(dataset, (d, i) => i);
+
+            bars.exit()
+                .transition()
+                .duration(500)
+                .attr("x", w)
+                .remove();
+
+            const newBars = bars.enter()
+                .append("rect")
+                .attr("x", w)
+                .attr("y", d => yScale(d))
+                .attr("width", xScale.bandwidth())
+                .attr("height", d => h - yScale(d))
+                .attr("fill", "grey");
+
+            newBars.merge(bars)
+                .transition()
+                .duration(500)
+                .attr("x", (d, i) => xScale(i))
+                .attr("y", d => yScale(d))
+                .attr("width", xScale.bandwidth())
+                .attr("height", d => h - yScale(d));
+
+            // === INTERACTION ===
+            newBars.merge(bars)
+                .on("mouseover", function(event, d) {
+                    const index = svg.selectAll("rect").nodes().indexOf(this);
+
+                    d3.select(this)
+                        .transition()
+                        .duration(200)
+                        .attr("fill", "orange");
+
+                    svg.selectAll("text.label")
+                        .filter((_, i2) => i2 === index)
+                        .style("opacity", 0);
+
+                    svg.append("text")
+                        .attr("id", "tooltip")
+                        .attr("x", parseFloat(d3.select(this).attr("x")) + xScale.bandwidth() / 2)
+                        .attr("y", Math.max(yScale(d) - 10, 10))
+                        .attr("text-anchor", "middle")
+                        .attr("font-size", "14px")
+                        .attr("font-weight", "bold")
+                        .attr("fill", "black")
+                        .text(d);
+                })
+                .on("mouseout", function(event, d) {
+                    const index = svg.selectAll("rect").nodes().indexOf(this);
+
+                    d3.select(this)
+                        .transition()
+                        .duration(500)
+                        .attr("fill", "grey");
+
+                    d3.select("#tooltip").remove();
+
+                    svg.selectAll("text.label")
+                        .filter((_, i2) => i2 === index)
+                        .style("opacity", 1);
+                });
+
+            // === LABELS ===
+            const labels = svg.selectAll("text.label")
+                .data(dataset, (d, i) => i);
+
+            labels.exit()
+                .transition()
+                .duration(500)
+                .attr("x", w)
+                .remove();
+
+            const newLabels = labels.enter()
+                .append("text")
+                .attr("class", "label")
+                .text(d => d)
+                .attr("x", w)
+                .attr("y", d => Math.max(yScale(d) - 5, 10))
+                .attr("text-anchor", "middle")
+                .attr("font-size", "12px")
+                .attr("fill", "black")
+                .style("pointer-events", "none");
+
+            newLabels.merge(labels)
+                .transition()
+                .duration(500)
+                .text(d => d)
+                .attr("x", (d, i) => xScale(i) + xScale.bandwidth() / 2)
+                .attr("y", d => Math.max(yScale(d) - 5, 10));
+        }
+
+        // ✅ SORT FUNCTION FIXED
+        function sortChart() {
+            sortAscending = !sortAscending;
+
+            // Create index list and sort based on dataset values
+            let indices = d3.range(dataset.length);
+            indices.sort((a, b) =>
+                sortAscending
+                    ? d3.ascending(dataset[a], dataset[b])
+                    : d3.descending(dataset[a], dataset[b])
+            );
+
+            // Update xScale with new sorted index positions
+            xScale.domain(indices);
+
+            // Move rects
+            svg.selectAll("rect")
+                .transition()
+                .duration(1000)
+                .attr("x", (d, i) => xScale(i));
+
+            // Move labels
+            svg.selectAll("text.label")
+                .transition()
+                .duration(1000)
+                .attr("x", (d, i) => xScale(i) + xScale.bandwidth() / 2);
+        }
+
+        // Initial draw
+        updateChart();
+
+        // Button events
+        d3.select("#addData").on("click", function () {
+            const newValue = Math.floor(Math.random() * maxValue);
+            dataset.push(newValue);
+            updateChart();
+        });
+
+        d3.select("#removeData").on("click", function () {
+            if (dataset.length > 0) {
+                dataset.shift();
+                updateChart();
+            }
+        });
+
+        d3.select("#sortData").on("click", function () {
+            sortChart();
+        });
+    </script>
+
+    <footer style="color: grey; margin-top: 20px;">
+        COS30045 Data Visualisation<br>
+        Anh Khoa
+    </footer>
+</body>
+</html>

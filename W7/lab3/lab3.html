@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lab 7.3 D3 Stacked Bar Chart</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    svg {
+      font-family: sans-serif;
+    }
+    .bar text {
+      fill: white;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Lab 7.3 – D3 Stacked Bar Chart</h2>
+  <svg width="300" height="300"></svg>
+
+  <script>
+    const dataset = [
+      { apples: 5, oranges: 10, grapes: 22 },
+      { apples: 4, oranges: 12, grapes: 28 },
+      { apples: 2, oranges: 19, grapes: 32 },
+      { apples: 7, oranges: 23, grapes: 35 },
+      { apples: 23, oranges: 17, grapes: 43 }
+    ];
+
+    const keys = ["apples", "oranges", "grapes"];
+
+    const w = 300;
+    const h = 300;
+    const padding = 30;
+
+    const svg = d3.select("svg")
+      .attr("width", w)
+      .attr("height", h);
+
+    // === Create stack series ===
+    const stack = d3.stack()
+      .keys(keys);
+
+    const series = stack(dataset); // array of 3 layers (apples, oranges, grapes)
+
+    // === Scales ===
+    const xScale = d3.scaleBand()
+      .domain(d3.range(dataset.length))
+      .range([padding, w - padding])
+      .padding(0.1);
+
+    const yScale = d3.scaleLinear()
+      .domain([0, d3.max(dataset, d => 
+        d.apples + d.oranges + d.grapes)])
+      .range([h - padding, padding]);
+
+    // === Color scale ===
+    const color = d3.scaleOrdinal()
+      .domain(keys)
+      .range(d3.schemeCategory10);
+
+    // === Create groups for each layer ===
+    svg.selectAll("g.layer")
+      .data(series)
+      .enter()
+      .append("g")
+      .attr("class", "layer")
+      .attr("fill", (d, i) => color(keys[i]))
+      .selectAll("rect")
+      .data(d => d)
+      .enter()
+      .append("rect")
+      .attr("x", (d, i) => xScale(i))
+      .attr("y", d => yScale(d[1]))
+      .attr("height", d => yScale(d[0]) - yScale(d[1]))
+      .attr("width", xScale.bandwidth());
+
+    // === Axes ===
+    const yAxis = d3.axisLeft(yScale).ticks(5);
+
+    svg.append("g")
+      .attr("transform", `translate(${padding}, 0)`)
+      .call(yAxis);
+  </script>
+</body>
+</html>
