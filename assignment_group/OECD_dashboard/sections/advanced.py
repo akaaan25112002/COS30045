@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from utils.db import load_table
-#from sections.advanced_single_country import single_country_report
-#from sections.advanced_compare_countries import compare_countries_report
+from sections.advanced_single_country import single_country_report
+from sections.advanced_compare_countries import compare_countries_report
 
 
 def section_advanced():
